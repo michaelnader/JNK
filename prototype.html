@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>JNK Privilege Club — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --obsidian-deep: #0A0A0A;
+    --obsidian: #121212;
+    --charcoal: #161821;
+    --graphite: #1F2230;
+    --midnight: #0F172A;
+    --midnight-soft: #1E293B;
+    --gold: #D4AF37;
+    --gold-soft: #B89028;
+    --platinum: #EFEFEF;
+    --platinum-dim: #B8BAC2;
+    --text-primary: #F4F5F7;
+    --text-secondary: #A5A8B5;
+    --text-tertiary: #6B6E7D;
+    --text-muted: #4A4D5A;
+    --glass-fill: rgba(255,255,255,0.06);
+    --glass-fill-strong: rgba(255,255,255,0.10);
+    --glass-border: rgba(255,255,255,0.14);
+    --glass-highlight: rgba(255,255,255,0.22);
+    --success: #6FCF97;
+    --tier-gold: #D4AF37;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    font-family: var(--sans);
+    color: var(--text-primary);
+    background: var(--obsidian-deep);
+    overflow-x: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Ambient background — drifting radial blobs */
+  .ambient {
+    position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    background: radial-gradient(circle at 10% 8%, #161821 0%, #0A0A0A 60%);
+  }
+  .blob {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.55;
+    animation: drift 24s ease-in-out infinite;
+  }
+  .blob.b1 { width: 520px; height: 520px; left: -120px; top: -100px; background: rgba(212,175,55,0.16); }
+  .blob.b2 { width: 620px; height: 620px; right: -160px; top: 20%; background: rgba(15,23,42,0.85); animation-delay: -8s; }
+  .blob.b3 { width: 480px; height: 480px; left: 30%; bottom: -160px; background: rgba(184,144,40,0.10); animation-delay: -14s; }
+  @keyframes drift {
+    0%, 100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(30px,-40px) scale(1.05); }
+    66% { transform: translate(-20px,30px) scale(0.95); }
+  }
+
+  /* Page header */
+  .page {
+    position: relative; z-index: 1; padding: 56px 32px 96px; max-width: 1600px; margin: 0 auto;
+  }
+  .page-head {
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 48px;
+  }
+  .brand h1 {
+    font-family: var(--serif); font-weight: 500; font-size: 48px; line-height: 1; margin: 0 0 8px;
+    letter-spacing: 0.5px;
+  }
+  .brand h1 span { color: var(--gold); }
+  .brand p { margin: 0; color: var(--text-secondary); font-size: 14px; letter-spacing: 0.4px; }
+  .meta {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 999px;
+    background: var(--glass-fill); border: 1px solid var(--glass-border);
+    font-size: 11px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .pill.gold { color: var(--gold); border-color: rgba(212,175,55,0.35); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+
+  /* Phone rack */
+  .rack {
+    display: flex; gap: 36px; padding-bottom: 20px; align-items: flex-start;
+  }
+  .phone-col { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .phone-label {
+    font-family: var(--serif); font-style: italic; color: var(--platinum-dim);
+    font-size: 16px; letter-spacing: 0.3px;
+  }
+  .phone-label small { display: block; font-family: var(--sans); font-style: normal; font-size: 11px; color: var(--text-tertiary); letter-spacing: 0.8px; text-transform: uppercase; margin-top: 4px; }
+
+  /* Phone frame */
+  .phone {
+    width: 360px; height: 760px; border-radius: 44px;
+    background: linear-gradient(160deg, #2a2a2f 0%, #15151a 100%);
+    padding: 10px;
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.65),
+      0 10px 30px -10px rgba(0,0,0,0.5),
+      inset 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative;
+  }
+  .phone::before {
+    content: ""; position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+    width: 110px; height: 28px; background: #000; border-radius: 999px; z-index: 5;
+  }
+  .screen {
+    position: relative; width: 100%; height: 100%; border-radius: 34px;
+    background: var(--obsidian-deep);
+    overflow: hidden;
+  }
+  .screen-inner {
+    position: absolute; inset: 0; padding: 44px 18px 96px; overflow: hidden;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  /* Per-screen ambient layer */
+  .screen-ambient {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(circle at 80% 8%, rgba(212,175,55,0.10), transparent 50%),
+      radial-gradient(circle at 10% 90%, rgba(30,41,59,0.45), transparent 55%),
+      linear-gradient(180deg, #0A0A0A 0%, #11121a 60%, #0A0A0A 100%);
+  }
+  .screen-inner > * { position: relative; z-index: 1; }
+
+  /* Status bar mock */
+  .status-bar {
+    position: absolute; top: 14px; left: 24px; right: 24px; height: 22px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; font-weight: 600; color: var(--text-primary); z-index: 6;
+  }
+  .status-bar .icons { display: inline-flex; gap: 6px; align-items: center; }
+  .status-bar .icons svg { width: 14px; height: 14px; fill: var(--text-primary); }
+
+  /* App-bar / greeting */
+  .greeting { margin: 4px 4px 0; }
+  .greeting .hello { font-size: 12px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-tertiary); }
+  .greeting .name { font-family: var(--serif); font-size: 28px; line-height: 1.1; margin-top: 2px; }
+  .greeting .name span { color: var(--gold); }
+  .greeting .sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* Generic glass card */
+  .glass {
+    background: var(--glass-fill);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%);
+    box-shadow: 0 8px 22px -12px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+    overflow: hidden;
+    position: relative;
+  }
+  .glass::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
+    pointer-events: none;
+  }
+
+  /* Loyalty strip */
+  .loyalty-strip { padding: 14px; display: flex; align-items: center; gap: 14px; }
+  .tier-badge {
+    width: 54px; height: 54px; border-radius: 999px; display: grid; place-items: center;
+    background: radial-gradient(circle, rgba(212,175,55,0.30), rgba(212,175,55,0.05));
+    border: 1px solid rgba(212,175,55,0.5);
+    color: var(--gold); font-family: var(--serif); font-size: 22px; font-weight: 600;
+    text-shadow: 0 0 12px rgba(212,175,55,0.4);
+    flex-shrink: 0;
+  }
+  .loyalty-strip .text { flex: 1; min-width: 0; }
+  .loyalty-strip .tier-name { font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-tertiary); }
+  .loyalty-strip .tier-line { font-size: 15px; font-weight: 500; margin-top: 2px; }
+  .loyalty-strip .tier-line b { color: var(--gold); font-weight: 600; }
+  .progress {
+    margin-top: 8px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;
+  }
+  .progress > div {
+    height: 100%; width: 73%;
+    background: linear-gradient(90deg, var(--gold-soft), var(--gold));
+    box-shadow: 0 0 10px rgba(212,175,55,0.6);
+  }
+
+  /* Section header */
+  .section-h {
+    display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px;
+    margin-top: 4px;
+  }
+  .section-h h2 {
+    font-family: var(--serif); font-weight: 500; font-size: 20px; margin: 0;
+    letter-spacing: 0.3px;
+  }
+  .section-h .link { font-size: 12px; color: var(--gold); letter-spacing: 0.4px; }
+
+  /* Venue carousel */
+  .v-carousel {
+    display: flex; gap: 10px; overflow: hidden;
+  }
+  .v-card {
+    flex: 0 0 220px; height: 280px; border-radius: 22px; overflow: hidden; position: relative;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 12px 28px -16px rgba(0,0,0,0.7);
+  }
+  .v-card .v-bg { position: absolute; inset: 0; }
+  .v-card .v-bg::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 35%, rgba(0,0,0,0.85) 95%);
+  }
+  .v-card.maze .v-bg { background: linear-gradient(160deg, #3A2A1A 0%, #1A1410 100%); }
+  .v-card.samara .v-bg { background: linear-gradient(160deg, #2B1B2C 0%, #120C1A 100%); }
+  .v-card.kikis .v-bg { background: linear-gradient(160deg, #1A2640 0%, #0C111E 100%); }
+  .v-card .v-meta {
+    position: absolute; left: 14px; right: 14px; bottom: 14px; z-index: 1;
+  }
+  .v-card .v-hood { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold); }
+  .v-card .v-name { font-family: var(--serif); font-size: 24px; line-height: 1; margin-top: 2px; }
+  .v-card .v-tag { margin-top: 6px; font-size: 11px; color: var(--text-secondary); line-height: 1.35; }
+  .v-card .v-decor {
+    position: absolute; top: 14px; right: 14px; width: 36px; height: 36px; border-radius: 50%;
+    background: var(--glass-fill); border: 1px solid var(--glass-border); display: grid; place-items: center;
+    color: var(--gold); font-family: var(--serif); font-size: 18px;
+  }
+
+  /* Quick action row */
+  .q-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .q-card {
+    padding: 12px 12px 14px; border-radius: 18px;
+    background: var(--glass-fill); border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .q-card .ico {
+    width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center;
+    background: rgba(212,175,55,0.12); color: var(--gold); margin-bottom: 8px;
+  }
+  .q-card .label { font-size: 12px; color: var(--text-secondary); }
+  .q-card .value { font-size: 14px; font-weight: 500; margin-top: 2px; }
+
+  /* Bottom nav */
+  .nav {
+    position: absolute; left: 16px; right: 16px; bottom: 14px; height: 64px; z-index: 4;
+    border-radius: 999px; background: rgba(15,15,18,0.7);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    display: grid; grid-template-columns: repeat(4,1fr); align-items: center;
+    box-shadow: 0 12px 24px -14px rgba(0,0,0,0.7);
+  }
+  .nav .n {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    font-size: 10px; color: var(--text-tertiary); letter-spacing: 0.5px;
+  }
+  .nav .n svg { width: 20px; height: 20px; fill: currentColor; opacity: 0.7; }
+  .nav .n.active { color: var(--gold); }
+  .nav .n.active svg { opacity: 1; filter: drop-shadow(0 0 6px rgba(212,175,55,0.6)); }
+  .nav .n.active::before {
+    content: ""; position: absolute; top: 8px; width: 24px; height: 2px; border-radius: 2px;
+    background: var(--gold); box-shadow: 0 0 8px rgba(212,175,55,0.7);
+  }
+  .nav .n { position: relative; }
+
+  /* Venue list (screen 2) */
+  .v-list { display: flex; flex-direction: column; gap: 10px; }
+  .v-list-card {
+    display: flex; gap: 12px; padding: 12px; border-radius: 18px;
+    background: var(--glass-fill); border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .v-list-card .thumb {
+    width: 78px; height: 78px; border-radius: 14px; flex-shrink: 0; position: relative; overflow: hidden;
+    border: 1px solid var(--glass-border);
+  }
+  .v-list-card .thumb.maze { background: linear-gradient(160deg, #3A2A1A 0%, #1A1410 100%); }
+  .v-list-card .thumb.samara { background: linear-gradient(160deg, #2B1B2C 0%, #120C1A 100%); }
+  .v-list-card .thumb.kikis { background: linear-gradient(160deg, #1A2640 0%, #0C111E 100%); }
+  .v-list-card .thumb::after {
+    content: attr(data-letter); position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: var(--serif); font-size: 30px; color: var(--gold); opacity: 0.65;
+  }
+  .v-list-card .vm { min-width: 0; }
+  .v-list-card .vm-hood { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); }
+  .v-list-card .vm-name { font-family: var(--serif); font-size: 19px; line-height: 1.1; margin-top: 2px; }
+  .v-list-card .vm-tag { font-size: 11px; color: var(--text-secondary); margin-top: 4px; line-height: 1.35; }
+  .v-list-card .vm-dish { font-size: 10px; color: var(--text-tertiary); margin-top: 6px; }
+  .v-list-card .vm-dish b { color: var(--platinum-dim); font-weight: 500; }
+
+  .filters { display: flex; gap: 8px; overflow: hidden; }
+  .chip {
+    padding: 6px 12px; border-radius: 999px; font-size: 11px;
+    background: var(--glass-fill); border: 1px solid var(--glass-border);
+    color: var(--text-secondary); white-space: nowrap; letter-spacing: 0.3px;
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  }
+  .chip.active {
+    background: rgba(212,175,55,0.18); border-color: rgba(212,175,55,0.55); color: var(--gold);
+  }
+
+  /* Loyalty arc */
+  .arc-wrap { display: flex; flex-direction: column; align-items: center; padding: 18px; gap: 14px; }
+  .arc {
+    width: 200px; height: 200px; position: relative;
+  }
+  .arc svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .arc .track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 10; }
+  .arc .fill {
+    fill: none; stroke: url(#goldGrad); stroke-width: 10; stroke-linecap: round;
+    filter: drop-shadow(0 0 6px rgba(212,175,55,0.5));
+  }
+  .arc .center {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  }
+  .arc .center .tier-name { font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold); }
+  .arc .center .pts { font-family: var(--serif); font-size: 44px; line-height: 1; }
+  .arc .center .next { font-size: 10px; color: var(--text-tertiary); margin-top: 4px; }
+
+  /* History list */
+  .hist { display: flex; flex-direction: column; gap: 8px; }
+  .hist-row {
+    display: flex; gap: 12px; padding: 10px 12px; border-radius: 14px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+  }
+  .hist-row .date {
+    width: 42px; flex-shrink: 0; text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.08); padding-right: 10px;
+  }
+  .hist-row .date .d { font-family: var(--serif); font-size: 22px; line-height: 1; }
+  .hist-row .date .m { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-tertiary); margin-top: 4px; }
+  .hist-row .info { min-width: 0; flex: 1; }
+  .hist-row .v { font-family: var(--serif); font-size: 16px; line-height: 1.1; }
+  .hist-row .det { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+  .hist-row .status {
+    align-self: flex-start; padding: 3px 8px; border-radius: 999px; font-size: 9px;
+    letter-spacing: 0.6px; text-transform: uppercase;
+  }
+  .hist-row .status.ok { background: rgba(111,207,151,0.12); color: var(--success); border: 1px solid rgba(111,207,151,0.3); }
+  .hist-row .status.vip { background: rgba(212,175,55,0.18); color: var(--gold); border: 1px solid rgba(212,175,55,0.4); }
+
+  /* Invites */
+  .invite-card { padding: 14px; }
+  .invite-card .when {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: 0.6px;
+    text-transform: uppercase; color: var(--gold);
+  }
+  .invite-card .title { font-family: var(--serif); font-size: 19px; line-height: 1.15; margin-top: 8px; }
+  .invite-card .sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.4; }
+  .invite-card .meta-row {
+    display: flex; justify-content: space-between; align-items: center; margin-top: 12px;
+  }
+  .invite-card .tags { display: flex; gap: 6px; }
+  .invite-card .tag {
+    font-size: 9px; letter-spacing: 0.6px; text-transform: uppercase; padding: 3px 8px; border-radius: 999px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--text-secondary);
+  }
+  .invite-card .tag.match { color: var(--gold); border-color: rgba(212,175,55,0.4); background: rgba(212,175,55,0.1); }
+  .invite-card .seats {
+    font-size: 11px; color: var(--text-tertiary);
+  }
+  .invite-card .seats b { color: var(--platinum-dim); font-weight: 500; }
+
+  /* Scroll containers — kept hidden overflow (mockup screens) */
+  .stack { display: flex; flex-direction: column; gap: 12px; }
+
+  /* Footer hint */
+  .foot {
+    margin-top: 36px; text-align: center; color: var(--text-tertiary); font-size: 12px;
+    letter-spacing: 0.4px;
+  }
+  .foot b { color: var(--platinum-dim); font-weight: 500; }
+
+  /* Responsive — let the rack scroll horizontally on narrow screens */
+  @media (max-width: 1200px) {
+    .rack { overflow-x: auto; padding: 0 12px 24px; }
+    .page { padding: 32px 16px 64px; }
+  }
+</style>
+</head>
+<body>
+  <div class="ambient" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+  </div>
+
+  <!-- Shared gold gradient for SVG arcs -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#B89028"/>
+        <stop offset="100%" stop-color="#D4AF37"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="page">
+    <header class="page-head">
+      <div class="brand">
+        <h1>JNK <span>Privilege Club</span></h1>
+        <p>Premium loyalty &amp; booking hub — Tier 1 prototype</p>
+      </div>
+      <div class="meta">
+        <span class="pill gold"><span class="dot"></span> Tier 1 · User</span>
+        <span class="pill">Flutter 3.44 · Web/iOS/Android</span>
+        <span class="pill">v1.0.0+1</span>
+      </div>
+    </header>
+
+    <div class="rack">
+
+      <!-- ====================== SCREEN 1 — DASHBOARD ====================== -->
+      <div class="phone-col">
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-ambient"></div>
+            <div class="status-bar">
+              <span>9:41</span>
+              <span class="icons">
+                <svg viewBox="0 0 24 24"><path d="M2 17h2v2H2v-2zm4-4h2v6H6v-6zm4-4h2v10h-2V9zm4-4h2v14h-2V5zm4-4h2v18h-2V1z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 3C7 3 2.7 5.1 0 8.4L12 21 24 8.4C21.3 5.1 17 3 12 3z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M17 4H7v16h10V4zm-2 14H9V6h6v12z"/></svg>
+              </span>
+            </div>
+
+            <div class="screen-inner">
+              <div class="greeting">
+                <div class="hello">Good evening,</div>
+                <div class="name">Alaa <span>El Ama</span></div>
+                <div class="sub">Member since September 2024 · Old Quarter, tonight</div>
+              </div>
+
+              <!-- Loyalty strip -->
+              <div class="glass loyalty-strip">
+                <div class="tier-badge">G</div>
+                <div class="text">
+                  <div class="tier-name">Gold member</div>
+                  <div class="tier-line"><b>365</b> pts · <span style="color:var(--text-secondary)">135 to Platinum</span></div>
+                  <div class="progress"><div></div></div>
+                </div>
+              </div>
+
+              <div class="section-h">
+                <h2>Tonight's curation</h2>
+                <span class="link">See all →</span>
+              </div>
+
+              <div class="v-carousel">
+                <div class="v-card maze">
+                  <div class="v-bg"></div>
+                  <div class="v-decor">M</div>
+                  <div class="v-meta">
+                    <div class="v-hood">Old Quarter</div>
+                    <div class="v-name">Maze</div>
+                    <div class="v-tag">Hidden in the bones of a 1924 typesetters' workshop.</div>
+                  </div>
+                </div>
+                <div class="v-card samara">
+                  <div class="v-bg"></div>
+                  <div class="v-decor">S</div>
+                  <div class="v-meta">
+                    <div class="v-hood">Eastern Boulevards</div>
+                    <div class="v-name">Samara</div>
+                    <div class="v-tag">Twelve charcoals. One hearth. No menu before eight.</div>
+                  </div>
+                </div>
+                <div class="v-card kikis">
+                  <div class="v-bg"></div>
+                </div>
+              </div>
+
+              <div class="q-row">
+                <div class="q-card">
+                  <div class="ico">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zM5 22h14a2 2 0 002-2V6a2 2 0 00-2-2h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2zM5 9h14v11H5V9z"/></svg>
+                  </div>
+                  <div class="label">Next reservation</div>
+                  <div class="value">Maze · Fri 22 May</div>
+                </div>
+                <div class="q-card">
+                  <div class="ico">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                  </div>
+                  <div class="label">Open invites</div>
+                  <div class="value">3 matching</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom nav -->
+            <div class="nav">
+              <div class="n active">
+                <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9v9a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1v-9z"/></svg>
+                Home
+              </div>
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+                Venues
+              </div>
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Loyalty
+              </div>
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                Invites
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">Dashboard <small>Greeting · Loyalty · Curation</small></div>
+      </div>
+
+      <!-- ====================== SCREEN 2 — VENUES ====================== -->
+      <div class="phone-col">
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-ambient"></div>
+            <div class="status-bar">
+              <span>9:41</span>
+              <span class="icons">
+                <svg viewBox="0 0 24 24"><path d="M2 17h2v2H2v-2zm4-4h2v6H6v-6zm4-4h2v10h-2V9zm4-4h2v14h-2V5zm4-4h2v18h-2V1z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 3C7 3 2.7 5.1 0 8.4L12 21 24 8.4C21.3 5.1 17 3 12 3z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M17 4H7v16h10V4zm-2 14H9V6h6v12z"/></svg>
+              </span>
+            </div>
+
+            <div class="screen-inner">
+              <div class="greeting">
+                <div class="hello">Curated venues</div>
+                <div class="name">Three <span>rooms</span></div>
+                <div class="sub">Hand-picked for the privilege circle</div>
+              </div>
+
+              <div class="filters">
+                <span class="chip active">All</span>
+                <span class="chip">Old Quarter</span>
+                <span class="chip">Music</span>
+                <span class="chip">Hearth</span>
+              </div>
+
+              <div class="v-list">
+                <div class="v-list-card">
+                  <div class="thumb maze" data-letter="M"></div>
+                  <div class="vm">
+                    <div class="vm-hood">Old Quarter</div>
+                    <div class="vm-name">Maze</div>
+                    <div class="vm-tag">Hidden in the bones of a 1924 typesetters' workshop.</div>
+                    <div class="vm-dish"><b>Signature</b> — Charcoal lamb shoulder, sumac onion</div>
+                  </div>
+                </div>
+                <div class="v-list-card">
+                  <div class="thumb samara" data-letter="S"></div>
+                  <div class="vm">
+                    <div class="vm-hood">Eastern Boulevards</div>
+                    <div class="vm-name">Samara</div>
+                    <div class="vm-tag">Twelve charcoals. One hearth. No menu before eight.</div>
+                    <div class="vm-dish"><b>Signature</b> — Whole grilled denise over vine leaves</div>
+                  </div>
+                </div>
+                <div class="v-list-card">
+                  <div class="thumb kikis" data-letter="K"></div>
+                  <div class="vm">
+                    <div class="vm-hood">Harbour Lane</div>
+                    <div class="vm-name">Kiki's</div>
+                    <div class="vm-tag">A 4,000-record listening bar. No phones above the bar.</div>
+                    <div class="vm-dish"><b>Signature</b> — The bartender's second pour</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="nav">
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9v9a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1v-9z"/></svg>
+                Home
+              </div>
+              <div class="n active">
+                <svg viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+                Venues
+              </div>
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Loyalty
+              </div>
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                Invites
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">Venues <small>The three rooms</small></div>
+      </div>
+
+      <!-- ====================== SCREEN 3 — LOYALTY ====================== -->
+      <div class="phone-col">
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-ambient"></div>
+            <div class="status-bar">
+              <span>9:41</span>
+              <span class="icons">
+                <svg viewBox="0 0 24 24"><path d="M2 17h2v2H2v-2zm4-4h2v6H6v-6zm4-4h2v10h-2V9zm4-4h2v14h-2V5zm4-4h2v18h-2V1z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 3C7 3 2.7 5.1 0 8.4L12 21 24 8.4C21.3 5.1 17 3 12 3z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M17 4H7v16h10V4zm-2 14H9V6h6v12z"/></svg>
+              </span>
+            </div>
+
+            <div class="screen-inner">
+              <div class="greeting">
+                <div class="hello">Your standing</div>
+                <div class="name">Gold <span>tier</span></div>
+              </div>
+
+              <div class="glass arc-wrap">
+                <div class="arc">
+                  <svg viewBox="0 0 110 110">
+                    <circle class="track" cx="55" cy="55" r="48"/>
+                    <!-- 73% of 2*pi*48 = 301.6 -> 220.2 -->
+                    <circle class="fill" cx="55" cy="55" r="48"
+                      stroke-dasharray="301.6" stroke-dashoffset="81.4"/>
+                  </svg>
+                  <div class="center">
+                    <div class="tier-name">Gold</div>
+                    <div class="pts">365</div>
+                    <div class="next">135 pts to Platinum</div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:18px; align-items:center; font-size:11px; color:var(--text-tertiary); letter-spacing:0.5px;">
+                  <span><span style="color:var(--platinum-dim);font-weight:500">4</span> reservations</span>
+                  <span style="opacity:0.4">·</span>
+                  <span><span style="color:var(--gold);font-weight:500">1</span> VIP bypass</span>
+                </div>
+              </div>
+
+              <div class="section-h">
+                <h2>History</h2>
+                <span class="link">Export →</span>
+              </div>
+
+              <div class="hist">
+                <div class="hist-row">
+                  <div class="date"><div class="d">25</div><div class="m">Apr</div></div>
+                  <div class="info">
+                    <div class="v">Samara</div>
+                    <div class="det">Party of 2 · 21:00 · +70 pts</div>
+                  </div>
+                  <div class="status ok">Approved</div>
+                </div>
+                <div class="hist-row">
+                  <div class="date"><div class="d">30</div><div class="m">Mar</div></div>
+                  <div class="info">
+                    <div class="v">Maze</div>
+                    <div class="det">Party of 6 · anniversary · +110 pts</div>
+                  </div>
+                  <div class="status ok">Approved</div>
+                </div>
+                <div class="hist-row">
+                  <div class="date"><div class="d">22</div><div class="m">Feb</div></div>
+                  <div class="info">
+                    <div class="v">Kiki's</div>
+                    <div class="det">Party of 2 · 22:00 · +95 pts</div>
+                  </div>
+                  <div class="status vip">VIP</div>
+                </div>
+                <div class="hist-row">
+                  <div class="date"><div class="d">18</div><div class="m">Jan</div></div>
+                  <div class="info">
+                    <div class="v">Samara</div>
+                    <div class="det">Party of 4 · window banquette · +90 pts</div>
+                  </div>
+                  <div class="status ok">Approved</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="nav">
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9v9a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1v-9z"/></svg>
+                Home
+              </div>
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+                Venues
+              </div>
+              <div class="n active">
+                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Loyalty
+              </div>
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                Invites
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">Loyalty <small>Tier · Progress · History</small></div>
+      </div>
+
+      <!-- ====================== SCREEN 4 — INVITES ====================== -->
+      <div class="phone-col">
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-ambient"></div>
+            <div class="status-bar">
+              <span>9:41</span>
+              <span class="icons">
+                <svg viewBox="0 0 24 24"><path d="M2 17h2v2H2v-2zm4-4h2v6H6v-6zm4-4h2v10h-2V9zm4-4h2v14h-2V5zm4-4h2v18h-2V1z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M12 3C7 3 2.7 5.1 0 8.4L12 21 24 8.4C21.3 5.1 17 3 12 3z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M17 4H7v16h10V4zm-2 14H9V6h6v12z"/></svg>
+              </span>
+            </div>
+
+            <div class="screen-inner">
+              <div class="greeting">
+                <div class="hello">Private invitations</div>
+                <div class="name">Five <span>open</span></div>
+                <div class="sub">Ranked against your interests</div>
+              </div>
+
+              <div class="filters">
+                <span class="chip active">All</span>
+                <span class="chip">Music</span>
+                <span class="chip">Whisky</span>
+                <span class="chip">Gastronomy</span>
+                <span class="chip">Art</span>
+              </div>
+
+              <div class="stack">
+                <div class="glass invite-card">
+                  <div class="when">Thu · 4 Jun · 21:00</div>
+                  <div class="title">Kiki's Vinyl Night — Bossa &amp; Brown Spirits</div>
+                  <div class="sub">Closed listening set · 38 seats</div>
+                  <div class="meta-row">
+                    <div class="tags">
+                      <span class="tag match">Music</span>
+                      <span class="tag match">Whisky</span>
+                      <span class="tag">Nightlife</span>
+                    </div>
+                    <div class="seats"><b>9</b> seats</div>
+                  </div>
+                </div>
+
+                <div class="glass invite-card">
+                  <div class="when">Fri · 12 Jun · 20:30</div>
+                  <div class="title">Samara Chef's Table — 12 Hands</div>
+                  <div class="sub">Six guest chefs, one hearth, no menu shown</div>
+                  <div class="meta-row">
+                    <div class="tags">
+                      <span class="tag match">Gastronomy</span>
+                      <span class="tag">Wine</span>
+                    </div>
+                    <div class="seats"><b>14</b> seats</div>
+                  </div>
+                </div>
+
+                <div class="glass invite-card">
+                  <div class="when">Sun · 21 Jun · 19:00</div>
+                  <div class="title">Maze × Hermès Silk Launch</div>
+                  <div class="sub">Private preview · members only</div>
+                  <div class="meta-row">
+                    <div class="tags">
+                      <span class="tag">Fashion</span>
+                      <span class="tag match">Art</span>
+                    </div>
+                    <div class="seats"><b>6</b> seats</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="nav">
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9v9a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1v-9z"/></svg>
+                Home
+              </div>
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+                Venues
+              </div>
+              <div class="n">
+                <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                Loyalty
+              </div>
+              <div class="n active">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                Invites
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-label">Invites <small>Tag-matched events</small></div>
+      </div>
+
+    </div>
+
+    <div class="foot">
+      <b>JNK Privilege Club</b> · prototype mock-up · obsidian + champagne · static HTML, no build required
+    </div>
+  </div>
+</body>
+</html>

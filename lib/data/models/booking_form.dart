@@ -1,41 +1,45 @@
 import 'package:equatable/equatable.dart';
 
-/// Immutable draft used inside BookingBloc state. The bloc emits a fresh form
-/// via [copyWith] on every event — keeping the draft immutable makes time-travel
-/// debugging and equality checks trivial.
+/// Aggregated state for the 4-step booking wizard.
 class BookingForm extends Equatable {
   const BookingForm({
-    required this.venueId,
-    this.dateTime,
+    required this.restaurantId,
     this.guestCount = 2,
-    this.specialRequests = '',
+    this.date,
+    this.time,
+    this.occasion,
+    this.note = '',
+    this.dietary = const {},
   });
 
-  final String venueId;
-  final DateTime? dateTime;
+  final String restaurantId;
   final int guestCount;
-  final String specialRequests;
-
-  bool get isValid =>
-      dateTime != null &&
-      dateTime!.isAfter(DateTime.now()) &&
-      guestCount >= 1 &&
-      guestCount <= 12;
+  final DateTime? date;
+  final String? time;
+  final String? occasion;
+  final String note;
+  final Set<String> dietary;
 
   BookingForm copyWith({
-    String? venueId,
-    DateTime? dateTime,
+    String? restaurantId,
     int? guestCount,
-    String? specialRequests,
-  }) {
-    return BookingForm(
-      venueId: venueId ?? this.venueId,
-      dateTime: dateTime ?? this.dateTime,
-      guestCount: guestCount ?? this.guestCount,
-      specialRequests: specialRequests ?? this.specialRequests,
-    );
-  }
+    DateTime? date,
+    String? time,
+    String? occasion,
+    String? note,
+    Set<String>? dietary,
+  }) =>
+      BookingForm(
+        restaurantId: restaurantId ?? this.restaurantId,
+        guestCount: guestCount ?? this.guestCount,
+        date: date ?? this.date,
+        time: time ?? this.time,
+        occasion: occasion ?? this.occasion,
+        note: note ?? this.note,
+        dietary: dietary ?? this.dietary,
+      );
 
   @override
-  List<Object?> get props => [venueId, dateTime, guestCount, specialRequests];
+  List<Object?> get props =>
+      [restaurantId, guestCount, date, time, occasion, note, dietary];
 }

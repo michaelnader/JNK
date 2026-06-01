@@ -1,155 +1,80 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../data/models/reservation.dart';
-import '../features/app_mode/bloc/app_mode_cubit.dart';
-import '../features/booking/presentation/pages/booking_page.dart';
-import '../features/booking/presentation/pages/booking_success_page.dart';
-import '../features/dashboard/presentation/pages/dashboard_page.dart';
-import '../features/invites/presentation/pages/invites_page.dart';
-import '../features/loyalty/presentation/pages/loyalty_page.dart';
-import '../features/tier2_stub/presentation/pages/tier2_stub_page.dart';
-import '../features/venues/presentation/pages/venue_detail_page.dart';
-import '../features/venues/presentation/pages/venues_list_page.dart';
-import '../shared/widgets/common/app_shell.dart';
+import '../features/account/my_reservations_page.dart';
+import '../features/booking/booking_cubit.dart';
+import '../features/booking/date_picker_page.dart';
+import '../features/booking/occasion_page.dart';
+import '../features/booking/review_page.dart';
+import '../features/booking/time_slots_page.dart';
+import '../features/home/home_page.dart';
+import '../features/payment/add_card_page.dart';
+import '../features/payment/confirmation_page.dart';
+import '../features/payment/payment_page.dart';
+import '../features/restaurants/restaurant_detail_page.dart';
+import '../features/restaurants/restaurants_page.dart';
 
 final _rootNavKey = GlobalKey<NavigatorState>(debugLabel: 'root');
-final _shellNavKey = GlobalKey<NavigatorState>(debugLabel: 'shell');
 
-/// Builds the go_router tree. The [appModeCubit] feeds [refreshListenable] so
-/// redirects re-run when the user switches between JNK (Tier 1) and Tali
-/// (Tier 2) modes.
-GoRouter buildRouter(AppModeCubit appModeCubit) {
+GoRouter buildRouter() {
   return GoRouter(
     navigatorKey: _rootNavKey,
-    initialLocation: '/dashboard',
-    refreshListenable: _CubitListenable(appModeCubit),
-    redirect: (context, state) {
-      final mode = appModeCubit.state.mode;
-      final goingToTier2 = state.matchedLocation.startsWith('/tier2');
-      if (mode == AppMode.admin && !goingToTier2) {
-        return '/tier2';
-      }
-      if (mode == AppMode.user && goingToTier2) {
-        return '/dashboard';
-      }
-      return null;
-    },
+    initialLocation: '/',
     routes: [
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            AppShell(navigationShell: navigationShell),
-        branches: [
-          StatefulShellBranch(
-            navigatorKey: _shellNavKey,
-            routes: [
-              GoRoute(
-                path: '/dashboard',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: DashboardPage(),
-                ),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/venues',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: VenuesListPage(),
-                ),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/loyalty',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: LoyaltyPage(),
-                ),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/invites',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: InvitesPage(),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      // Full-screen routes (escape the shell)
+      GoRoute(path: '/', builder: (_, __) => const HomePage()),
       GoRoute(
-        path: '/venues/:id',
-        parentNavigatorKey: _rootNavKey,
-        builder: (context, state) =>
-            VenueDetailPage(venueId: state.pathParameters['id']!),
+        path: '/restaurants',
+        builder: (_, __) => const RestaurantsPage(),
+      ),
+      GoRoute(
+        path: '/restaurants/:id',
+        builder: (_, s) => RestaurantDetailPage(id: s.pathParameters['id']!),
         routes: [
+          // /restaurants/:id/book — start of the wizard. Reset the cubit for
+          // this restaurant then jump to step 1.
           GoRoute(
             path: 'book',
-            parentNavigatorKey: _rootNavKey,
-            builder: (context, state) =>
-                BookingPage(venueId: state.pathParameters['id']!),
+            redirect: (context, state) {
+              final id = state.pathParameters['id']!;
+              context.read<BookingCubit>().reset(id);
+              return '/booking/date';
+            },
           ),
         ],
       ),
+
+      // Booking wizard
       GoRoute(
-        path: '/booking-success',
-        parentNavigatorKey: _rootNavKey,
-        builder: (context, state) {
-          final reservation = state.extra as Reservation?;
-          if (reservation == null) {
-            // Defensive — should never happen via UI navigation.
-            return const _MissingExtraScaffold();
-          }
-          return BookingSuccessPage(reservation: reservation);
-        },
+        path: '/booking/date',
+        builder: (_, __) => const DatePickerPage(),
       ),
       GoRoute(
-        path: '/tier2',
-        parentNavigatorKey: _rootNavKey,
-        pageBuilder: (context, state) => const NoTransitionPage(
-          child: Tier2StubPage(),
-        ),
+        path: '/booking/time',
+        builder: (_, __) => const TimeSlotsPage(),
+      ),
+      GoRoute(
+        path: '/booking/occasion',
+        builder: (_, __) => const OccasionPage(),
+      ),
+      GoRoute(
+        path: '/booking/review',
+        builder: (_, __) => const ReviewPage(),
+      ),
+
+      // Payment + confirmation
+      GoRoute(path: '/payment', builder: (_, __) => const PaymentPage()),
+      GoRoute(path: '/payment/add', builder: (_, __) => const AddCardPage()),
+      GoRoute(
+        path: '/confirmation',
+        builder: (_, __) => const ConfirmationPage(),
+      ),
+
+      // Account
+      GoRoute(
+        path: '/reservations',
+        builder: (_, __) => const MyReservationsPage(),
       ),
     ],
   );
-}
-
-/// Adapts a Bloc/Cubit's stream into the [Listenable] go_router expects.
-class _CubitListenable extends ChangeNotifier {
-  _CubitListenable(BlocBase<Object?> cubit) {
-    notifyListeners();
-    _sub = cubit.stream.listen((_) => notifyListeners());
-  }
-  late final StreamSubscription<Object?> _sub;
-
-  @override
-  void dispose() {
-    _sub.cancel();
-    super.dispose();
-  }
-}
-
-class _MissingExtraScaffold extends StatelessWidget {
-  const _MissingExtraScaffold();
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Text(
-          'Missing reservation context.',
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-      ),
-    );
-  }
 }

@@ -1,5 +1,5 @@
 name: gnk
-description: "JNK Privilege Club — premium loyalty & booking hub (Tier 1)."
+description: "G'nK Restaurants — Off Duty palette, six-restaurant booking app."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -11,19 +11,10 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
 
-  # State management — required per ecosystem spec.
   flutter_bloc: ^9.1.1
-
-  # Declarative routing with nested ShellRoute for the privilege/tali shell.
   go_router: ^16.2.5
-
-  # Premium typography (Inter + Cormorant) without bundling .ttf assets.
   google_fonts: ^8.1.0
-
-  # Value equality on entities and bloc states.
   equatable: ^2.0.7
-
-  # Locale-aware date/time formatting in booking and reservation history.
   intl: ^0.20.2
 
 dev_dependencies:
@@ -33,3 +24,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/photos/

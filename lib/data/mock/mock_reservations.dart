@@ -1,35 +1,28 @@
 import '../models/reservation.dart';
 
-/// Demo user's past reservations. Seeds the loyalty calculator + history list.
+/// Seed bookings for the "My reservations" screen.
 final List<Reservation> mockReservations = [
   Reservation(
-    id: 'res_001',
-    venueId: 'venue_samara',
-    dateTime: DateTime(2026, 1, 18, 20, 30),
+    id: 'r1',
+    restaurantId: 'stanley',
+    dateTime: DateTime(2025, 11, 14, 20, 30),
     guestCount: 4,
-    status: ReservationStatus.approved,
-    specialRequests: 'Window banquette if available.',
+    status: ReservationStatus.confirmed,
+    note: 'Anniversary · Pescatarian',
   ),
   Reservation(
-    id: 'res_002',
-    venueId: 'venue_kikis',
-    dateTime: DateTime(2026, 2, 22, 22, 0),
-    guestCount: 2,
-    status: ReservationStatus.vipBypassed,
-  ),
-  Reservation(
-    id: 'res_003',
-    venueId: 'venue_maze',
-    dateTime: DateTime(2026, 3, 30, 20, 0),
+    id: 'r2',
+    restaurantId: 'kikis',
+    dateTime: DateTime(2025, 11, 22, 14, 0),
     guestCount: 6,
-    status: ReservationStatus.approved,
-    specialRequests: 'Anniversary — please no candles.',
+    status: ReservationStatus.confirmed,
+    note: 'Cabana for 6',
   ),
   Reservation(
-    id: 'res_004',
-    venueId: 'venue_samara',
-    dateTime: DateTime(2026, 4, 25, 21, 0),
+    id: 'r3',
+    restaurantId: 'sax',
+    dateTime: DateTime(2025, 11, 6, 22, 0),
     guestCount: 2,
-    status: ReservationStatus.approved,
+    status: ReservationStatus.past,
   ),
 ];

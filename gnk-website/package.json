@@ -1,0 +1,15 @@
+{
+  "name": "gnk-website",
+  "private": true,
+  "version": "0.1.0",
+  "description": "G'nK Restaurants — full website (React + Vite + Express).",
+  "workspaces": ["client", "server"],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,magenta \"npm:dev --workspace server\" \"npm:dev --workspace client\"",
+    "build": "npm run build --workspace client",
+    "start": "npm start --workspace server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

@@ -1,0 +1,238 @@
+/* G'nK — Off Duty global styles */
+
+:root {
+  --bg-sand:        #E6DED2;
+  --bg-cream:       #F5F1EA;
+  --true-black:     #0E0E0E;
+  --charcoal:       #2B2B2B;
+  --gold:           #6F8597;
+  --gold-light:     #A1B5C2;
+  --gold-deep:      #2F3E4A;
+  --gold-soft:      rgba(111,133,151,0.15);
+  --chrome:         #C9C9C7;
+
+  --text:           #0E0E0E;
+  --text-mute-l:    rgba(14,14,14,0.55);
+  --text-mute-d:    rgba(255,255,255,0.62);
+  --text-faint-l:   rgba(14,14,14,0.35);
+
+  --div-l:          rgba(14,14,14,0.10);
+  --div-d:          rgba(255,255,255,0.10);
+
+  --site-max:       1280px;
+  --site-pad:       clamp(20px, 4vw, 56px);
+
+  --mono-filter:    grayscale(100%) contrast(1.06) brightness(0.94);
+  --mono-tint:      rgba(47,62,74,0.18);
+}
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; padding: 0; }
+html, body { min-height: 100%; overflow-x: hidden; }
+body {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.5), transparent 50%),
+    var(--bg-sand);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* ─── Container ──────────────────────────────────────────────────────── */
+.container {
+  width: 100%;
+  max-width: var(--site-max);
+  margin: 0 auto;
+  padding: 0 var(--site-pad);
+}
+
+/* ─── Display headings ───────────────────────────────────────────────── */
+.h1, .h2, .h3 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  margin: 0;
+  color: var(--text);
+}
+.h1 { font-size: clamp(34px, 6vw, 72px); }
+.h2 { font-size: clamp(26px, 4vw, 44px); }
+.h3 { font-size: clamp(18px, 2.5vw, 28px); }
+
+.lbl-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-mute-l);
+}
+.lbl-mute { color: var(--text-mute-l); font-size: 13px; }
+
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
+
+/* ─── Responsive grid utilities ──────────────────────────────────────── */
+
+/* Auto-fit card grid with sensible mobile defaults */
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: clamp(16px, 2.5vw, 28px);
+}
+
+/* Three across at large widths, collapses naturally */
+.grid-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(14px, 2vw, 20px);
+}
+
+/* Two-column page split (e.g. RestaurantDetail) — collapses to single column under 880px */
+.split-2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+  gap: clamp(28px, 4vw, 48px);
+}
+.split-2 > aside {
+  position: sticky;
+  top: 96px;
+  align-self: start;
+}
+@media (max-width: 880px) {
+  .split-2 { grid-template-columns: 1fr !important; }
+  .split-2 > aside { position: static !important; }
+}
+
+/* Home intro: heading + supporting paragraph (kept side-by-side on wide
+   screens, stacked on narrow) */
+.intro-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .intro-row { grid-template-columns: 1fr; }
+}
+
+/* Three-up stats row that collapses to wrap on narrow widths */
+.stat-row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(12px, 2vw, 16px);
+}
+
+/* Booking — time-slot grid (3 across, never narrower) */
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+/* ─── Site header / footer responsiveness ────────────────────────────── */
+.site-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(12px, 2vw, 24px);
+  height: 72px;
+}
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 3vw, 32px);
+}
+.site-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 9999;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.site-burger {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.site-mobile-nav {
+  display: none;
+  padding: 0 var(--site-pad) 16px;
+  border-top: 1px solid var(--div-l);
+}
+.site-mobile-nav a {
+  display: block;
+  padding: 14px 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+@media (max-width: 760px) {
+  .site-nav { display: none; }
+  .site-cta { display: none; }
+  .site-burger { display: inline-flex; }
+  .site-mobile-nav.is-open { display: block; }
+}
+
+/* ─── Hero ────────────────────────────────────────────────────────────── */
+.hero-cta-row {
+  margin-top: clamp(20px, 3vw, 32px);
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* CTA pills should not break vertically — but the text inside can wrap if
+   forced. On the narrowest mobile, drop minWidth. */
+@media (max-width: 480px) {
+  button[style*="border-radius: 9999px"],
+  button[style*="border-radius: 9999"] {
+    min-width: 0 !important;
+  }
+}
+
+/* ─── Generic responsive padding adjustments ─────────────────────────── */
+section.container {
+  padding-top: clamp(40px, 7vw, 80px);
+  padding-bottom: clamp(40px, 7vw, 80px);
+}
+
+/* Stat row inside cards — 3 columns until narrow, then wrap to 2 then 1 */
+@media (max-width: 520px) {
+  .stat-row-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* RestaurantDetail eyebrow chips wrap nicely */
+.chip-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Footer columns: collapse to 2 then 1 on small widths */
+.footer-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: clamp(24px, 4vw, 40px);
+}
